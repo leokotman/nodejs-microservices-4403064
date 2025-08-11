@@ -6,6 +6,8 @@
 // HTTP server functionality
 const config = require("../config"); // Configuration settings
 
+const axios = require("axios");
+
 // eslint-disable-next-line no-unused-vars
 const tracing = require("../lib/tracing")(
   `${config.serviceName}:${config.serviceVersion}`
@@ -30,6 +32,48 @@ const server = http.createServer(app);
 server.on("listening", () => {
   const addr = server.address();
   const bind = typeof addr === "string" ? `pipe ${addr}` : `port ${addr.port}`;
+
+  const register = async () =>
+    axios
+      .put(
+        `http://127.0.1:3080/register/${config.serviceName}/${config.serviceVersion}/${addr.port}`
+      )
+      .catch((err) => {
+        console.error("Error registering service:", err);
+      });
+
+  register();
+  const interval = setInterval(register, 10000);
+
+  const unregister = async () =>
+    axios
+      .delete(
+        `http://127.0.1:3080/register/${config.serviceName}/${config.serviceVersion}/${addr.port}`
+      )
+      .catch((err) => {
+        console.error("Error registering service:", err);
+      });
+
+  const cleanup = async () => {
+    const clean = false;
+    if (!clean) {
+      clearInterval(interval);
+      await unregister();
+    }
+  };
+  process.on("uncaughtException", async () => {
+    await cleanup();
+    process.exit(0);
+  });
+  process.on("SIGTERM", async () => {
+    await cleanup();
+    process.exit(0);
+  });
+  process.on("SIGINT", async () => {
+    await cleanup();
+    process.exit(0);
+  });
+
   console.info(
     `${config.serviceName}:${config.serviceVersion} listening on ${bind}`
   );
