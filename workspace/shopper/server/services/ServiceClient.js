@@ -31,7 +31,10 @@ class ServiceClient {
       return response.data;
     } catch (error) {
       const errorMessage =
-        (error.response && error.response.data && error.data.message) ||
+        (error.response &&
+          error.response.data &&
+          error.data &&
+          error.data.message) ||
         error.message;
       throw new Error(errorMessage);
     }
