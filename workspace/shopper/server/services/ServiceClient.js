@@ -23,12 +23,11 @@ class ServiceClient {
 
   static async callService(serviceName, requestOptions) {
     const { ip, port } = await this.getService(serviceName);
-    const newRequestOptions = {
-      ...requestOptions,
-      url: `http://${ip}:${port}${requestOptions.url}`
-    };
+    // eslint-disable-next-line no-param-reassign
+    requestOptions.url = `http://${ip}:${port}${requestOptions.url}`;
+
     try {
-      const response = await axios(newRequestOptions);
+      const response = await axios(requestOptions);
       return response.data;
     } catch (error) {
       const errorMessage =

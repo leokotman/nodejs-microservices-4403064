@@ -37,7 +37,7 @@ class CatalogClient {
         method: "get",
         url: `/items/${itemId}`
       });
-      return result.data;
+      return result;
     } catch (error) {
       console.error("Error fetching item:", error);
       return null;

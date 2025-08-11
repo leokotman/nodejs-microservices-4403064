@@ -1,11 +1,12 @@
 const config = require("../config");
+const ServiceClient = require("./ServiceClient");
 
-/** @module CartService */
+/** @module CartServiceClient */
 
 /**
  * Service class for managing a user's cart
  */
-class CartService {
+class CartServiceClient {
   static key(userId) {
     return `shopper_cart:${userId}`;
   }
@@ -21,7 +22,16 @@ class CartService {
    * the item in the cart
    */
   static async add(userId, itemId) {
-    return this.client().HINCRBY(this.key(userId), itemId, 1);
+    try {
+      return ServiceClient.callService("cart-service", {
+        method: "post",
+        url: `/items/${userId}`,
+        data: { itemId }
+      });
+    } catch (error) {
+      console.error(error);
+      throw new Error(error);
+    }
   }
 
   /**
@@ -30,7 +40,16 @@ class CartService {
    * the cart items and their quantities
    */
   static async getAll(userId) {
-    return this.client().HGETALL(this.key(userId));
+    try {
+      const result = await ServiceClient.callService("cart-service", {
+        method: "get",
+        url: `/items/${userId}`
+      });
+      return result;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   }
 
   /**
@@ -40,8 +59,16 @@ class CartService {
    * removed (1 if the item was removed, 0 if the item was not in the cart)
    */
   static async remove(userId, itemId) {
-    return this.client().HDEL(this.key(userId), itemId);
+    try {
+      return ServiceClient.callService("cart-service", {
+        method: "delete",
+        url: `/items/${userId}/${itemId}`
+      });
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   }
 }
 
-module.exports = CartService;
+module.exports = CartServiceClient;
