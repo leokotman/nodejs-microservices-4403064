@@ -3,10 +3,14 @@ const CatalogService = require("../lib/CatalogService");
 
 const router = express.Router();
 
+function createResponse(item) {
+  return { id: item.id, price: item.price, name: item.name, sku: item.sku };
+}
+
 router.get("/items", async (req, res) => {
   try {
     const items = await CatalogService.getAll();
-    return res.json(items);
+    return res.json(items.map(createResponse));
   } catch (error) {
     console.error("Error fetching items:", error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -19,7 +23,7 @@ router.get("/items/:id", async (req, res) => {
     if (!item) {
       res.status(404).json({ error: "Item not found" });
     }
-    return res.json(item);
+    return res.json(createResponse(item));
   } catch (error) {
     console.error("Error fetching item:", error);
     return res
@@ -46,7 +50,7 @@ router.put("/items/:id", async (req, res) => {
     if (!updatedItem) {
       res.status(404).json({ error: "Item not found" });
     }
-    return res.json(updatedItem);
+    return res.json(createResponse(updatedItem));
   } catch (error) {
     console.error("Error updating item:", error);
     return res

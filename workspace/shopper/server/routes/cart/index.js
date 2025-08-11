@@ -1,7 +1,7 @@
 // Import required modules
 const express = require("express");
 
-const CatalogService = require("../../services/CatalogService");
+const CatalogClient = require("../../services/CatalogClient");
 const CartService = require("../../services/CartService");
 const OrderService = require("../../services/OrderService");
 
@@ -28,7 +28,7 @@ router.get("/", async (req, res) => {
     // Map over the cart items and fetch their details
     items = await Promise.all(
       Object.keys(cartItems).map(async (itemId) => {
-        const item = await CatalogService.getOne(itemId);
+        const item = await CatalogClient.getOne(itemId);
         if (!item) {
           CartService.remove(userId, itemId);
           return null;
@@ -108,7 +108,7 @@ router.get("/buy", async (req, res) => {
     // to clear the cart after the purchase
     const items = await Promise.all(
       Object.keys(cartItems).map(async (key) => {
-        const item = await CatalogService.getOne(key);
+        const item = await CatalogClient.getOne(key);
 
         // Add a promise to remove this item from the cart to the list of promises
         cartPromises.push(CartService.remove(userId, item.id));
