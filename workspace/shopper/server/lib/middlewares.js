@@ -22,11 +22,15 @@ module.exports.assignTemplateVariables = async (req, res, next) => {
         const userId = res.locals.currentUser.id;
 
         let cartCount = 0;
-        const cartContents = await CartService.getAll(userId);
-        if (cartContents) {
-          Object.keys(cartContents).forEach((itemId) => {
-            cartCount += parseInt(cartContents[itemId], 10);
-          });
+        try {
+          const cartContents = await CartService.getAll(userId);
+          if (cartContents) {
+            Object.keys(cartContents).forEach((itemId) => {
+              cartCount += parseInt(cartContents[itemId], 10);
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching cart contents:", error);
         }
         res.locals.cartCount = cartCount;
       }

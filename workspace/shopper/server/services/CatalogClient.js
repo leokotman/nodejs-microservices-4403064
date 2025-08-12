@@ -4,6 +4,8 @@
 // const ItemModel = require("../models/Item");
 const ServiceClient = require("./ServiceClient");
 
+let allItemsCache = [];
+
 /**
  * Service class for interacting with the Item catalog
  */
@@ -19,10 +21,11 @@ class CatalogClient {
         url: `/items`
       });
 
+      allItemsCache = result;
       return result;
     } catch (error) {
       console.error("Error fetching all items:", error);
-      return [];
+      return allItemsCache;
     }
   }
 
