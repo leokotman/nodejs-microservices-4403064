@@ -1,27 +1,22 @@
 // Import necessary modules
 const express = require("express");
-const OrderService = require("../../../services/OrderService");
+const OrderService = require("../../../services/OrderServiceClient");
 
 // Create a new Express router
 const router = express.Router();
 
 // Route for getting all orders
-router.get("/", async (req, res, next) => {
+router.get("/", async (req, res) => {
   try {
-    // Use the OrderService to get all orders
     const orders = await OrderService.getAll();
-
-    // Render the admin orders page with the orders data
     return res.render("admin/orders", { orders });
-  } catch (err) {
-    // Push an error message to the session
+  } catch (error) {
+    console.error("Error fetching orders:", error);
     req.session.messages.push({
       type: "danger",
       text: "There was an error fetching the orders"
     });
-    // Log the error and forward it to the error handler
-    console.error(err);
-    return next(err);
+    return res.redirect("/");
   }
 });
 
