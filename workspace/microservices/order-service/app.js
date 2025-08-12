@@ -1,7 +1,10 @@
+const amqp = require("amqplib");
 const express = require("express");
+const morgan = require("morgan");
+
+const OrderService = require("./lib/OrderService");
 
 const app = express();
-const morgan = require("morgan");
 const routes = require("./routes");
 const config = require("./config");
 
@@ -28,5 +31,29 @@ app.use((err, req, res, next) => {
     }
   });
 });
+
+// RabbitMQ queue connection and message consumption
+(async () => {
+  try {
+    const connection = await amqp.connect("amqp://127.0.0.1");
+    const channel = await connection.createChannel();
+    const queue = "orders";
+    await channel.assertQueue(queue, { durable: true });
+    console.log(" [x] Waiting for messages in %s", queue);
+    channel.consume(
+      queue,
+      async (message) => {
+        const order = JSON.parse(message.content.toString());
+        console.log(" [x] Received order:", order);
+        await OrderService.create(order.userId, order.email, order.items);
+        // Process the order
+        channel.ack(message);
+      },
+      { noAck: false } // remove from queue only after successful creation of order
+    );
+  } catch (error) {
+    console.error("Error connecting to RabbitMQ:", error);
+  }
+})();
 
 module.exports = app;

@@ -1,3 +1,5 @@
+const amqp = require("amqplib");
+
 /** @module OrderService */
 const ServiceClient = require("./ServiceClient");
 
@@ -12,11 +14,22 @@ class OrderServiceClient {
    * @returns {Promise<Object>} - A promise that resolves to the new order
    */
   static async create(userId, email, items) {
-    return ServiceClient.callService("order-service", {
-      method: "post",
-      url: `/orders`,
-      data: { userId, email, items }
-    });
+    try {
+      const connection = await amqp.connect("amqp://127.0.0.1");
+      const channel = await connection.createChannel();
+      const queue = "orders";
+      const message = JSON.stringify({ userId, email, items });
+      await channel.assertQueue(queue, { durable: true });
+      channel.sendToQueue(queue, Buffer.from(message));
+      console.log(" [x] Sent %s", message);
+    } catch (error) {
+      console.error("Error sending queue message:", error);
+    }
+    // return ServiceClient.callService("order-service", {
+    //   method: "post",
+    //   url: `/orders`,
+    //   data: { userId, email, items }
+    // });
   }
 
   /**
