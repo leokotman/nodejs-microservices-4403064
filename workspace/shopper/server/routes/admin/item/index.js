@@ -45,11 +45,11 @@ router.post("/", async (req, res) => {
   try {
     // If there was no existing item we now want to create a new item object
     if (!req.body.itemId) {
-      await CatalogClient.create({ sku, name, price });
+      await CatalogClient.create({ sku, name, price }, req.session.token);
     } else {
       // Update an existing item
       const itemData = { sku, name, price };
-      await CatalogClient.update(req.body.itemId, itemData);
+      await CatalogClient.update(req.body.itemId, itemData, req.session.token);
     }
 
     // Provide feedback
@@ -75,7 +75,7 @@ router.post("/", async (req, res) => {
 router.get("/delete/:itemId", async (req, res) => {
   try {
     // Remove the item
-    await CatalogClient.remove(req.params.itemId);
+    await CatalogClient.remove(req.params.itemId, req.session.token);
 
     // Provide feedback
     req.session.messages.push({
